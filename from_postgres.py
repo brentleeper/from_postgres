@@ -4,7 +4,7 @@ from sql_config import psql_target_conn_str
 import argparse
 import time
 
-parser = argparse.ArgumentParser("This tool exports data from PostGreSQL into one of several formats\n\n"
+parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis tool exports data from PostGreSQL into one of several formats\n\n"
                                  "\tPass option --help for more details.\n")
 
 parser.add_argument(
