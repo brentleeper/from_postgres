@@ -35,8 +35,8 @@ parser.add_argument(
     "-d",
     "--delimiter",
     required=False,
-    help="Optionally specify the CSV file delimiter, enclosed in quotes. EXAMPLE: -d ""|"". Default is ',' (COMMA)"
-         "NOTICE: For '\t' pass TAB"
+    help="Optionally specify the CSV file delimiter, enclosed in quotes. EXAMPLE -> -d '|' <-  Default is ',' (COMMA) "
+         "NOTICE: For '\\t' pass TAB"
 )
 parser.add_argument(
     "-tn",
