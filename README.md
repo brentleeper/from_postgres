@@ -3,7 +3,9 @@ Base engine for custom bulk data exports from PostgreSQL to one of many file typ
 
 Be sure to set up your DB connections in the sql_config.py file
 
-usage: This tool exports data from PostGreSQL into one of several formats
+usage: python3 from_postgres.py [options]
+
+        This tool exports data from PostGreSQL into one of several formats
 
         Pass option --help for more details.
 
