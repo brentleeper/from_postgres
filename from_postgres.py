@@ -2,6 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sql_config import psql_target_conn_str
 import argparse
+import time
 
 parser = argparse.ArgumentParser("This tool exports data from PostGreSQL into one of several formats\n\n"
                                  "\tPass option --help for more details.\n")
@@ -66,17 +67,25 @@ else:
     except:
         print("Unable to connect to database, please check the psql_target_conn_str in your sql_config.py file")
         exit()
+    finally:
+        print("Connected.")
 
-print("Extracting data ", end="")
+if user_args.export_type.upper() in ["CSV", "XL", "SQLITE", "JSON"]:
+    start_time = time.time()
+    print("Extracting data.")
+    data = pd.read_sql(query, psql_engine)
+else:
+    print("Invalid export_type.\nRun --help for usage information")
+    exit()
 
-data = pd.read_sql(query, psql_engine)
+record_ct = len(data)
 
 if user_args.export_type.upper() == "XL":
-    print(f"to Excel --> {user_args.export_file}")
+    print(f"Writing {record_ct} records to Excel --> {user_args.export_file}")
     data.to_excel(user_args.export_file, index=False)
 
 elif user_args.export_type.upper() == "CSV":
-    print(f"to CSV --> {user_args.export_file}")
+    print(f"Writing {record_ct} records to CSV --> {user_args.export_file}")
     if user_args.delimiter:
         if user_args.delimiter.upper() == "TAB":
             delimiter = "\t"
@@ -85,7 +94,7 @@ elif user_args.export_type.upper() == "CSV":
     else:
         delimiter = ","
 
-    print(f"Using delimiter {delimiter}")
+    print(f"Using delimiter '{delimiter}'")
 
     try:
         data.to_csv(user_args.export_file, sep=delimiter, index=False)
@@ -94,11 +103,11 @@ elif user_args.export_type.upper() == "CSV":
         exit()
 
 elif user_args.export_type.upper() == "JSON":
-    print(f"to JSON --> {user_args.export_file}")
+    print(f"Writing {record_ct} records to JSON --> {user_args.export_file}")
     data.to_json(user_args.export_file, orient="table")
 
 elif user_args.export_type.upper() == "SQLITE":
-    print(f"to SQLITE --> {user_args.export_file}")
+    print(f"Writing {record_ct} records to SQLITE --> {user_args.export_file}")
 
     if user_args.table_name:
         print(f"Using table_name {user_args.table_name}")
@@ -109,8 +118,8 @@ elif user_args.export_type.upper() == "SQLITE":
         print("Missing required argument table_name.\nRun --help for usage information")
         exit()
 
-else:
-    print("Invalid export_type.\nRun --help for usage information")
-    exit()
+end_time = time.time()
 
-print("Success")
+print(f"Finished in {round(end_time - start_time,2)} seconds")
+
+print("Success.")
