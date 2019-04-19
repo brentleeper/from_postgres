@@ -46,19 +46,19 @@ parser.add_argument(
 
 user_args = parser.parse_args()
 
-if user_args.query:
-    query = user_args.query
-elif user_args.sql_file:
-    sql_file = open(user_args.sql_file)
-    query = sql_file.read()
-else:
-    print("Please specify --query or --sql_file")
-    exit()
-
 if psql_target_conn_str is None:
     print("Please set up PSQL connection in sql_config.py ")
     exit()
 else:
+    if user_args.query:
+        query = user_args.query
+    elif user_args.sql_file:
+        with open(user_args.sql_file) as sql_file:
+            query = sql_file.read()
+    else:
+        print("Please specify --query or --sql_file")
+        exit()
+
     print("Establishing database connection.")
 
     try:
@@ -67,16 +67,16 @@ else:
         print("Unable to connect to database, please check the psql_target_conn_str in your sql_config.py file")
         exit()
 
-print("Extracting data to ", end="")
+print("Extracting data ", end="")
 
 data = pd.read_sql(query, psql_engine)
 
 if user_args.export_type.upper() == "XL":
-    print(f"Excel --> {user_args.export_file}")
+    print(f"to Excel --> {user_args.export_file}")
     data.to_excel(user_args.export_file, index=False)
 
 elif user_args.export_type.upper() == "CSV":
-    print(f"CSV --> {user_args.export_file}")
+    print(f"to CSV --> {user_args.export_file}")
     if user_args.delimiter:
         if user_args.delimiter.upper() == "TAB":
             delimiter = "\t"
@@ -94,11 +94,11 @@ elif user_args.export_type.upper() == "CSV":
         exit()
 
 elif user_args.export_type.upper() == "JSON":
-    print(f"JSON --> {user_args.export_file}")
+    print(f"to JSON --> {user_args.export_file}")
     data.to_json(user_args.export_file, orient="table")
 
 elif user_args.export_type.upper() == "SQLITE":
-    print(f"SQLITE --> {user_args.export_file}")
+    print(f"to SQLITE --> {user_args.export_file}")
 
     if user_args.table_name:
         print(f"Using table_name {user_args.table_name}")
