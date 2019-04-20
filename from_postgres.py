@@ -1,8 +1,6 @@
-import pandas as pd
-from sqlalchemy import create_engine
-from sql_config import psql_target_conn_str
 import argparse
 import time
+from psql_exporter import PsqlExporter
 
 parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis tool exports data from PostGreSQL into one of several formats\n\n"
                                  "\tPass option --help for more details.\n")
@@ -47,76 +45,22 @@ parser.add_argument(
 
 user_args = parser.parse_args()
 
-if psql_target_conn_str is None:
-    print("Please set up PSQL connection in sql_config.py ")
-    exit()
-else:
-    if user_args.query:
-        query = user_args.query
-    elif user_args.sql_file:
-        with open(user_args.sql_file) as sql_file:
-            query = sql_file.read()
-    else:
-        print("Please specify --query or --sql_file")
-        exit()
+exporter = PsqlExporter()
 
-    print("Establishing database connection.")
+exporter.set_query(query=user_args.query, sql_file=user_args.sql_file)
 
-    try:
-        psql_engine = create_engine(psql_target_conn_str)
-    except:
-        print("Unable to connect to database, please check the psql_target_conn_str in your sql_config.py file")
-        exit()
-    finally:
-        print("Connected.")
+exporter.set_export_type(user_args.export_type, delimiter=user_args.delimiter, table_name=user_args.table_name)
 
-if user_args.export_type.upper() in ["CSV", "XL", "SQLITE", "JSON"]:
-    start_time = time.time()
-    print("Extracting data.")
-    data = pd.read_sql(query, psql_engine)
-else:
-    print("Invalid export_type.\nRun --help for usage information")
+start_time = time.time()
+print("Extracting data.")
+
+success = exporter.get_data()
+
+if not success:
+    print(exporter.error)
     exit()
 
-record_ct = len(data)
-
-if user_args.export_type.upper() == "XL":
-    print(f"Writing {record_ct} records to Excel --> {user_args.export_file}")
-    data.to_excel(user_args.export_file, index=False)
-
-elif user_args.export_type.upper() == "CSV":
-    print(f"Writing {record_ct} records to CSV --> {user_args.export_file}")
-    if user_args.delimiter:
-        if user_args.delimiter.upper() == "TAB":
-            delimiter = "\t"
-        else:
-            delimiter = user_args.delimiter
-    else:
-        delimiter = ","
-
-    print(f"Using delimiter '{delimiter}'")
-
-    try:
-        data.to_csv(user_args.export_file, sep=delimiter, index=False)
-    except:
-        print(f"ERROR: Bad delimiter --> {delimiter}")
-        exit()
-
-elif user_args.export_type.upper() == "JSON":
-    print(f"Writing {record_ct} records to JSON --> {user_args.export_file}")
-    data.to_json(user_args.export_file, orient="table")
-
-elif user_args.export_type.upper() == "SQLITE":
-    print(f"Writing {record_ct} records to SQLITE --> {user_args.export_file}")
-
-    if user_args.table_name:
-        print(f"Using table_name {user_args.table_name}")
-
-        sql_lite_conn = lite_engine = create_engine(f"sqlite:///{user_args.export_file}").raw_connection()
-        data.to_sql(user_args.table_name, sql_lite_conn, index=False)
-    else:
-        print("Missing required argument table_name.\nRun --help for usage information")
-        exit()
+exporter.do_export(user_args.export_file)
 
 end_time = time.time()
 
