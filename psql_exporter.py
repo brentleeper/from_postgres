@@ -99,7 +99,6 @@ class PsqlExporter:
             try:
                 self.data.to_csv(file_path, sep=delimiter, index=False)
             except:
-                traceback.print_exc()
                 print(f"PsqlExporter: ERROR: Bad delimiter --> '{delimiter}'")
                 exit()
 
