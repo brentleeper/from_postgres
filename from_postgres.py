@@ -52,7 +52,6 @@ exporter.set_query(query=user_args.query, sql_file=user_args.sql_file)
 exporter.set_export_type(user_args.export_type, delimiter=user_args.delimiter, table_name=user_args.table_name)
 
 start_time = time.time()
-print("Extracting data.")
 
 success = exporter.get_data()
 

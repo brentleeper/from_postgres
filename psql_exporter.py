@@ -60,6 +60,7 @@ class PsqlExporter:
 
         if query:
             try:
+                print("PsqlExporter: Extracting data.")
                 self.data = pd.read_sql(query, self.psql_engine)
                 self.record_ct = len(self.data)
                 return True
@@ -79,24 +80,27 @@ class PsqlExporter:
     def do_export(self, file_path):
         if self.type.upper() == "XL":
             print(f"PsqlExporter: Writing {self.record_ct} records to Excel --> {file_path}")
-            self.data.to_excel(file_path, index=False)
+            self.data.to_excel(file_path, index=False, engine='xlsxwriter')
 
         elif self.type.upper() == "CSV":
             print(f"PsqlExporter: Writing {self.record_ct} records to CSV --> {file_path}")
             if self.delimiter:
                 if self.delimiter.upper() == "TAB":
-                    delimiter = "\t"
+                    delimiter = str("\t")
+                    print("PsqlExporter: Using delimiter 'TAB'")
                 else:
                     delimiter = self.delimiter
+                    print(f"PsqlExporter: Using delimiter '{delimiter}'")
             else:
                 delimiter = ","
+                print(f"PsqlExporter: Using delimiter '{delimiter}'")
 
-            print(f"PsqlExporter: Using delimiter '{delimiter}'")
 
             try:
-                self.data.to_csv(file_path, sep=self.delimiter, index=False)
+                self.data.to_csv(file_path, sep=delimiter, index=False)
             except:
-                print(f"PsqlExporter: ERROR: Bad delimiter --> {delimiter}")
+                traceback.print_exc()
+                print(f"PsqlExporter: ERROR: Bad delimiter --> '{delimiter}'")
                 exit()
 
         elif self.type.upper() == "JSON":
