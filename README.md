@@ -33,4 +33,7 @@ optional arguments:
   -tn TABLE_NAME, --table_name TABLE_NAME
                         Supply the table name for SQLITE export. Required when
                         using export_type SQLITE
+  -c, --compress        Optionally pass this flag to compress the export into
+                        a zip file
+
 ```
