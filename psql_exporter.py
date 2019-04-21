@@ -5,7 +5,7 @@ from sql_config import psql_target_conn_str
 import traceback
 import os
 from os.path import basename
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
 class PsqlExporter:
     def __init__(self):
@@ -80,6 +80,10 @@ class PsqlExporter:
         self.table_name = table_name
 
     def do_export(self, file_path, compress=False):
+
+        file_path = file_path.replace("\\\\", "\\")
+        file_path = file_path.replace("\\","/")
+
         if self.type.upper() == "XL":
             print(f"PsqlExporter: Writing {self.record_ct} records to Excel --> {file_path}")
             self.data.to_excel(file_path, index=False, engine='xlsxwriter')
@@ -96,7 +100,6 @@ class PsqlExporter:
             else:
                 delimiter = ","
                 print(f"PsqlExporter: Using delimiter '{delimiter}'")
-
 
             try:
                 self.data.to_csv(file_path, sep=delimiter, index=False)
@@ -122,7 +125,7 @@ class PsqlExporter:
 
             print(f"PsqlExporter: Compressing to {zip_file}")
 
-            zip = ZipFile(zip_file, "w")
+            zip = ZipFile(zip_file, "w", ZIP_DEFLATED)
             zip.write(file_path, base_name)
             zip.close()
 
