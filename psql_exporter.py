@@ -119,7 +119,11 @@ class PsqlExporter:
             self.data.to_sql(self.table_name, sql_lite_conn, index=False)
 
         if compress:
-            base_path = "/".join(file_path.split("/")[:-1]) + "/"
+            base_path = "/".join(file_path.split("/")[:-1])
+
+            if base_path != "":
+                base_path += "/"
+
             base_name = basename(file_path)
             zip_file = base_path + base_name.split(".")[0] + ".zip"
 
