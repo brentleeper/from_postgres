@@ -9,6 +9,9 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 class PsqlExporter:
     def __init__(self):
+        """
+            Must configure psql_target_conn_str within the sql_config file.
+        """
         if psql_target_conn_str is None:
             print("PsqlExporter: Please set up PSQL connection in sql_config.py ")
             exit()
@@ -33,6 +36,13 @@ class PsqlExporter:
         self.query = None
 
     def set_export_type(self, type, delimiter=None, table_name=None):
+        """
+        Set the export type for this export.
+        :param type: The export type. Options ["CSV", "XL", "SQLITE", "JSON"]
+        :param delimiter: Optional. The delimiter to use when exporting with type CSV. Default ','
+        :param table_name: Optional. The name of the table within the SQLITE file. Required for type SQLITE
+        :return: None
+        """
         if type.upper() in self.avail_types:
             self.type = type
 
@@ -49,6 +59,14 @@ class PsqlExporter:
             exit()
 
     def set_query(self, query=None, sql_file=None):
+        """
+        Set the query to use for data extraction.
+        :param query: Optional. The query to run against your database for data extraction.
+                      Required if sql_file not passed
+        :param sql_file: Optional. The .sql file containing a query or set of queries to run.
+                      Required if query not passed
+        :return: None
+        """
         if not sql_file and query:
             self.query = query
         elif sql_file:
@@ -57,6 +75,11 @@ class PsqlExporter:
 
 
     def get_data(self, query=None):
+        """
+        Retrieve the data from the configured database using the supplied or set query.
+        :param query: Optional. The query to run against your database for data extraction. Supersedes set_query.
+        :return: True on success. False on failure.
+        """
         if not query:
             query = self.query
 
@@ -74,12 +97,28 @@ class PsqlExporter:
             exit()
 
     def set_delimiter(self,delimiter):
+        """
+        Use this to set the delimiter separately from setting the export type
+        :param delimiter: The delimiter to use for type CSV export
+        :return: None
+        """
         self.delimiter = delimiter
 
     def set_table_name(self,table_name):
+        """
+        Use this to set the table name separately from setting the export type
+        :param table_name: The name of the table within the SQLITE file.
+        :return: None
+        """
         self.table_name = table_name
 
     def do_export(self, file_path, compress=False):
+        """
+        Write the extracted data to the given file path using the set export type and optionally compress the file.
+        :param file_path: The file path of where to write the exported data.
+        :param compress: Optional. Pass True to compress the exported data. This will remove the uncompressed file.
+        :return: None
+        """
 
         file_path = file_path.replace("\\\\", "\\")
         file_path = file_path.replace("\\","/")
