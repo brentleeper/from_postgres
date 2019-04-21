@@ -43,6 +43,14 @@ parser.add_argument(
     help="Supply the table name for SQLITE export. Required when using export_type SQLITE"
 )
 
+parser.add_argument(
+    '-c',
+    "--compress",
+    action='store_true',
+    required=False,
+    help="Optionally pass this flag to compress the export into a zip file"
+)
+
 user_args = parser.parse_args()
 
 exporter = PsqlExporter()
@@ -59,7 +67,7 @@ if not success:
     print(exporter.error)
     exit()
 
-exporter.do_export(user_args.export_file)
+exporter.do_export(user_args.export_file, compress=user_args.compress)
 
 end_time = time.time()
 

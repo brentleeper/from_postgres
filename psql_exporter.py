@@ -3,7 +3,9 @@ import psycopg2
 import sqlite3
 from sql_config import psql_target_conn_str
 import traceback
-
+import os
+from os.path import basename
+from zipfile import ZipFile
 
 class PsqlExporter:
     def __init__(self):
@@ -77,7 +79,7 @@ class PsqlExporter:
     def set_table_name(self,table_name):
         self.table_name = table_name
 
-    def do_export(self, file_path):
+    def do_export(self, file_path, compress=False):
         if self.type.upper() == "XL":
             print(f"PsqlExporter: Writing {self.record_ct} records to Excel --> {file_path}")
             self.data.to_excel(file_path, index=False, engine='xlsxwriter')
@@ -112,4 +114,17 @@ class PsqlExporter:
 
             sql_lite_conn = sqlite3.connect(file_path)
             self.data.to_sql(self.table_name, sql_lite_conn, index=False)
+
+        if compress:
+            base_path = "/".join(file_path.split("/")[:-1]) + "/"
+            base_name = basename(file_path)
+            zip_file = base_path + base_name.split(".")[0] + ".zip"
+
+            print(f"PsqlExporter: Compressing to {zip_file}")
+
+            zip = ZipFile(zip_file, "w")
+            zip.write(file_path, base_name)
+            zip.close()
+
+            os.remove(file_path)
 
