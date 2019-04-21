@@ -1,5 +1,5 @@
 # configure sql connections here
-# reference: https://docs.sqlalchemy.org/en/latest/core/engines.html
+# reference: http://initd.org/psycopg/docs/module.html
 
-psql_target_conn_str = "postgresql+psycopg2://username:password@host:port/database" # REQUIRED!
-#psql_target_conn_str = "postgresql+psycopg2://username:password@host:port/database"
+psql_target_conn_str = None
+#psql_target_conn_str = "host='hostname/ip' user='user' password='pass' dbname='db' connect_timeout=6 port='5432"

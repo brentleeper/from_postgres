@@ -2,8 +2,8 @@ import argparse
 import time
 from psql_exporter import PsqlExporter
 
-parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis tool exports data from PostGreSQL into one of several formats\n\n"
-                                 "\tPass option --help for more details.\n")
+parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis tool exports data from PostGreSQL into"
+                                 " one of several formats\n\n\tPass option --help for more details.\n")
 
 parser.add_argument(
     "-et",

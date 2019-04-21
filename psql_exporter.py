@@ -1,5 +1,6 @@
 import pandas as pd
-from sqlalchemy import create_engine
+import psycopg2
+import sqlite3
 from sql_config import psql_target_conn_str
 import traceback
 
@@ -13,11 +14,11 @@ class PsqlExporter:
             print("PsqlExporter: Establishing database connection.")
 
             try:
-                self.psql_engine = create_engine(psql_target_conn_str)
+                self.psql_engine = psycopg2.connect(psql_target_conn_str)
             except:
                 print("PsqlExporter: Unable to connect to database, please check the psql_target_conn_str in your sql_config.py file")
                 exit()
-            finally:
+            else:
                 print("PsqlExporter: Connected.")
 
         self.avail_types = ["CSV", "XL", "SQLITE", "JSON"]
@@ -106,6 +107,6 @@ class PsqlExporter:
             print(f"PsqlExporter: Writing {self.record_ct} records to SQLITE --> {file_path}")
             print(f"PsqlExporter: Using table_name {self.table_name}")
 
-            sql_lite_conn = create_engine(f"sqlite:///{file_path}").raw_connection()
+            sql_lite_conn = sqlite3.connect(file_path)
             self.data.to_sql(self.table_name, sql_lite_conn, index=False)
 
