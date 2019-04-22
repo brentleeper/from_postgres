@@ -1,30 +1,27 @@
 import pandas as pd
 import psycopg2
 import sqlite3
-from sql_config import psql_target_conn_str
 import traceback
 import os
 from os.path import basename
 from zipfile import ZipFile, ZIP_DEFLATED
 
-class PsqlExporter:
-    def __init__(self):
+
+class PSQLExporter:
+    def __init__(self, ppg2_con_str):
         """
-            Must configure psql_target_conn_str within the sql_config file.
+        :param ppg2_con_str: psycopg2 connection string
         """
-        if psql_target_conn_str is None:
-            print("PsqlExporter: Please set up PSQL connection in sql_config.py ")
+
+        print("PSQLExporter: Establishing database connection.")
+
+        try:
+            self.psql_engine = psycopg2.connect(ppg2_con_str)
+        except:
+            print("PSQLExporter: Unable to connect to database.")
             exit()
         else:
-            print("PsqlExporter: Establishing database connection.")
-
-            try:
-                self.psql_engine = psycopg2.connect(psql_target_conn_str)
-            except:
-                print("PsqlExporter: Unable to connect to database, please check the psql_target_conn_str in your sql_config.py file")
-                exit()
-            else:
-                print("PsqlExporter: Connected.")
+            print("PSQLExporter: Connected.")
 
         self.avail_types = ["CSV", "XL", "SQLITE", "JSON"]
         self.type = None
@@ -49,13 +46,13 @@ class PsqlExporter:
             if type.upper() == "SQLITE" and table_name is not None:
                 self.table_name = table_name
             elif type.upper() == "SQLITE" and self.table_name is None and table_name is None:
-                print("PsqlExporter: Missing required param table_name for type: SQLITE")
+                print("PSQLExporter: Missing required param table_name for type: SQLITE")
                 exit()
             elif type == "CSV" and delimiter:
                 self.delimiter = delimiter
 
         else:
-            print(f"PsqlExporter: Invalid export_type.\nAvailable Types --> {self.avail_types}")
+            print(f"PSQLExporter: Invalid export_type.\nAvailable Types --> {self.avail_types}")
             exit()
 
     def set_query(self, query=None, sql_file=None):
@@ -85,7 +82,7 @@ class PsqlExporter:
 
         if query:
             try:
-                print("PsqlExporter: Extracting data.")
+                print("PSQLExporter: Extracting data.")
                 self.data = pd.read_sql(query, self.psql_engine)
                 self.record_ct = len(self.data)
                 return True
@@ -93,7 +90,7 @@ class PsqlExporter:
                 self.error = traceback.format_exc()
                 return False
         else:
-            print("PsqlExporter: Must set or pass query.")
+            print("PSQLExporter: Must set or pass query.")
             exit()
 
     def set_delimiter(self,delimiter):
@@ -103,6 +100,45 @@ class PsqlExporter:
         :return: None
         """
         self.delimiter = delimiter
+
+    def do_sql(self, query=None, sql_file=None, query_list=None):
+        """
+        Run prep sql or cleanup sql. Pass only 1 of the 3 params
+        :param query: Optional. The query to run against your database for prep.
+                      Required if sql_file not passed
+        :param sql_file: Optional. The .sql file containing a query or set of queries to run.
+                      Required if query not passed
+        :param query_list: Optional. A list of queries to run in order against your database for prep
+        :return: True on success. False on failure
+        """
+
+        if (query and sql_file and query_list) or (not query and not sql_file and not query_list):
+            self.error = "Must pass exactly 1 param"
+            return False
+
+        if query or sql_file:
+            if query:
+                self.query = query
+            elif sql_file:
+                with open(sql_file) as file:
+                    self.query = file.read()
+
+
+            print("PSQLExporter: Doing prep SQL.")
+
+            try:
+                self.psql_engine.execute(query)
+                self.psql_engine.commit()
+                return True
+            except:
+                self.error = traceback.format_exc()
+                return False
+        elif query_list:
+            for q in query_list:
+                if not self.do_sql(query=q):
+                    if self.error == "Must pass exactly 1 param":
+                        self.error = "Queries in query_list must not be None or False"
+                    return False
 
     def set_table_name(self,table_name):
         """
@@ -124,35 +160,35 @@ class PsqlExporter:
         file_path = file_path.replace("\\","/")
 
         if self.type.upper() == "XL":
-            print(f"PsqlExporter: Writing {self.record_ct} records to Excel --> {file_path}")
+            print(f"PSQLExporter: Writing {self.record_ct} records to Excel --> {file_path}")
             self.data.to_excel(file_path, index=False, engine='xlsxwriter')
 
         elif self.type.upper() == "CSV":
-            print(f"PsqlExporter: Writing {self.record_ct} records to CSV --> {file_path}")
+            print(f"PSQLExporter: Writing {self.record_ct} records to CSV --> {file_path}")
             if self.delimiter:
                 if self.delimiter.upper() == "TAB":
                     delimiter = str("\t")
-                    print("PsqlExporter: Using delimiter 'TAB'")
+                    print("PSQLExporter: Using delimiter 'TAB'")
                 else:
                     delimiter = self.delimiter
-                    print(f"PsqlExporter: Using delimiter '{delimiter}'")
+                    print(f"PSQLExporter: Using delimiter '{delimiter}'")
             else:
                 delimiter = ","
-                print(f"PsqlExporter: Using delimiter '{delimiter}'")
+                print(f"PSQLExporter: Using delimiter '{delimiter}'")
 
             try:
                 self.data.to_csv(file_path, sep=delimiter, index=False)
             except:
-                print(f"PsqlExporter: ERROR: Bad delimiter --> '{delimiter}'")
+                print(f"PSQLExporter: ERROR: Bad delimiter --> '{delimiter}'")
                 exit()
 
         elif self.type.upper() == "JSON":
-            print(f"PsqlExporter: Writing {self.record_ct} records to JSON --> {file_path}")
+            print(f"PSQLExporter: Writing {self.record_ct} records to JSON --> {file_path}")
             self.data.to_json(file_path, orient="table")
 
         elif self.type.upper() == "SQLITE":
-            print(f"PsqlExporter: Writing {self.record_ct} records to SQLITE --> {file_path}")
-            print(f"PsqlExporter: Using table_name {self.table_name}")
+            print(f"PSQLExporter: Writing {self.record_ct} records to SQLITE --> {file_path}")
+            print(f"PSQLExporter: Using table_name {self.table_name}")
 
             sql_lite_conn = sqlite3.connect(file_path)
             self.data.to_sql(self.table_name, sql_lite_conn, index=False)
@@ -166,7 +202,7 @@ class PsqlExporter:
             base_name = basename(file_path)
             zip_file = base_path + base_name.split(".")[0] + ".zip"
 
-            print(f"PsqlExporter: Compressing to {zip_file}")
+            print(f"PSQLExporter: Compressing to {zip_file}")
 
             zip = ZipFile(zip_file, "w", ZIP_DEFLATED)
             zip.write(file_path, base_name)

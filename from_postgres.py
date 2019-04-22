@@ -1,6 +1,7 @@
 import argparse
 import time
-from psql_exporter import PsqlExporter
+from psql_exporter import PSQLExporter
+from sql_config import psql_target_conn_str
 
 parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis tool exports data from PostGreSQL into"
                                  " one of several formats\n\n\tPass option --help for more details.\n")
@@ -53,7 +54,7 @@ parser.add_argument(
 
 user_args = parser.parse_args()
 
-exporter = PsqlExporter()
+exporter = PSQLExporter(psql_target_conn_str)
 
 exporter.set_query(query=user_args.query, sql_file=user_args.sql_file)
 
