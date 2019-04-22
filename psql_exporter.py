@@ -2,7 +2,6 @@ import pandas as pd
 import psycopg2
 import sqlite3
 import traceback
-import os
 from os.path import basename
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -124,7 +123,7 @@ class PSQLExporter:
                     self.query = file.read()
 
 
-            print("PSQLExporter: Doing prep SQL.")
+            print("PSQLExporter: Doing prep/cleanup SQL.")
 
             try:
                 self.psql_engine.execute(query)
@@ -148,11 +147,12 @@ class PSQLExporter:
         """
         self.table_name = table_name
 
-    def do_export(self, file_path, compress=False):
+    def do_export(self, file_path, compress=False, headers=True):
         """
         Write the extracted data to the given file path using the set export type and optionally compress the file.
         :param file_path: The file path of where to write the exported data.
         :param compress: Optional. Pass True to compress the exported data. This will remove the uncompressed file.
+        :param headers: Default True, Pass False to exclude headers from CSV exports
         :return: None
         """
 
@@ -176,8 +176,13 @@ class PSQLExporter:
                 delimiter = ","
                 print(f"PSQLExporter: Using delimiter '{delimiter}'")
 
+            if headers:
+                print(f"PSQLExporter: With headers")
+            else:
+                print(f"PSQLExporter: Without headers")
+
             try:
-                self.data.to_csv(file_path, sep=delimiter, index=False)
+                self.data.to_csv(file_path, sep=delimiter, index=False, header=headers)
             except:
                 print(f"PSQLExporter: ERROR: Bad delimiter --> '{delimiter}'")
                 exit()
@@ -207,6 +212,3 @@ class PSQLExporter:
             zip = ZipFile(zip_file, "w", ZIP_DEFLATED)
             zip.write(file_path, base_name)
             zip.close()
-
-            os.remove(file_path)
-

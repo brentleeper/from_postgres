@@ -37,6 +37,15 @@ parser.add_argument(
     help="Optionally specify the CSV file delimiter, enclosed in quotes. EXAMPLE -> -d '|' <-  Default is ',' (COMMA) "
          "NOTICE: For '\\t' pass TAB"
 )
+
+parser.add_argument(
+    '-nh',
+    "--no_headers",
+    action='store_true',
+    required=False,
+    help="Optionally pass this flag to exclude headers from the export file for type CSV"
+)
+
 parser.add_argument(
     "-tn",
     "--table_name",
@@ -68,7 +77,9 @@ if not success:
     print(exporter.error)
     exit()
 
-exporter.do_export(user_args.export_file, compress=user_args.compress)
+headers = not(user_args.no_headers == True)
+
+exporter.do_export(user_args.export_file, compress=user_args.compress, headers=headers)
 
 end_time = time.time()
 
