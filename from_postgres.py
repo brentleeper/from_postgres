@@ -9,8 +9,8 @@ parser = argparse.ArgumentParser("python3 from_postgres.py [options]\n\n\tThis t
 parser.add_argument(
     "-et",
     "--export_type",
-    required=True,
-    help="Available Types: XL (Excel File), CSV (CSV File), JSON (JSON Text File), SQLITE"
+    required=False,
+    help="Default: CSV. Available Types: XL (Excel File), CSV (CSV File), JSON (JSON Text File), SQLITE"
 )
 parser.add_argument(
     "-ef",
@@ -67,7 +67,12 @@ exporter = PSQLExporter(psql_target_conn_str)
 
 exporter.set_query(query=user_args.query, sql_file=user_args.sql_file)
 
-exporter.set_export_type(user_args.export_type, delimiter=user_args.delimiter, table_name=user_args.table_name)
+export_type =  user_args.export_type
+
+if not export_type:
+    export_type = "CSV"
+
+exporter.set_export_type(export_type, delimiter=user_args.delimiter, table_name=user_args.table_name)
 
 start_time = time.time()
 
