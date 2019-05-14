@@ -28,8 +28,8 @@ optional arguments:
                         if -sf option not provided
   -d DELIMITER, --delimiter DELIMITER
                         Optionally specify the CSV file delimiter, enclosed in
-                        quotes. EXAMPLE: -d "|". Default is ',' (COMMA)NOTICE:
-                        For ' ' pass TAB
+                        quotes. EXAMPLE: -d '|'. Default is ',' (COMMA) NOTICE:
+                        For '\t' pass TAB
   -tn TABLE_NAME, --table_name TABLE_NAME
                         Supply the table name for SQLITE export. Required when
                         using export_type SQLITE
