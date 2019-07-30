@@ -1,5 +1,5 @@
 # from_postgres
-Base engine for custom bulk data exports from PostgreSQL to one of many file types
+Base engine for custom data exports from PostgreSQL to one of many file types
 
 Be sure to set up your DB connections in the sql_config.py file
 
